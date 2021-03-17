@@ -30,7 +30,9 @@ length(unique(activityData$date))
 1. Calculate the total number of steps taken per day
 ```{r, echo = TRUE}
 StepsPerDay <- aggregate(steps ~ date, activityData, sum, na.rm = TRUE)
+```
 2. Make a histogram of the total number of steps taken each day
+```{r, echo = TRUE}
 hist(StepsPerDay$steps)
 ```
 ##Step 3
@@ -56,16 +58,42 @@ intervalWithMaxNbSteps
 ```
 ##Step 6
 ##Code to describe and show a strategy for imputing missing data
-```{r, echo = TRUE}
+
 There are multiple strategies to deal with missing values, the most common being:
 1. Constant value imputations
 2. Regression model value imputations
 3. Mean/mode value substitutions
 
 For simplicity I will use point 3, filling in all the missing values in the dataset with the mean per interval.
-
+```{r, echo = TRUE}
 totalValuesmissing <- sum(is.na(activityData$steps))
 totalValuesmissing
+activityData$CompleteSteps <- ifelse(is.na(activityData$steps), round(StepsPerInterval$steps[match(activityData$interval, StepsPerInterval$interval)],0), activityData$steps)
+```
 
+##Step 7
+##Histogram of the total number of steps taken each day after missing values are imputed
+```{r, echo = TRUE}
+hist(activityData$CompleteSteps,breaks=5)
+```
+## Mean and median number of steps taken each day
+```{r, echo = TRUE}
+StepsPerDayNoNA <- aggregate(CompleteSteps ~ date, activityData, sum, na.rm = TRUE)
+MeanStepsPerDayNoNA <- mean(StepsPerDayNoNA$CompleteSteps)
+MeanStepsPerDayNoNA
+
+MedianStepsPerDayNoNA <- median(StepsPerDayNoNA$CompleteSteps)
+MedianStepsPerDayNoNA
+```
+
+## Step 8
+##Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+```{r, echo = TRUE}
+activityData$weekday <- weekdays(activityData$date)
+activityData$DayType <- ifelse(activityData$weekday=='Saturday' |activityData$weekday=='Sunday', 'weekend', 'weekday')
+StepsPerDayTypeNoNA <- aggregate(CompleteSteps ~ DayType + interval, activityData, mean)
+library(lattice)
+xyplot(CompleteSteps ~ interval | DayType, StepsPerDayTypeNoNA, type = "l", layout = c(1, 2), 
+    xlab = "Interval", ylab = "Number of steps")
 
 ```
